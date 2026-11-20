@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "jp.bingo.bingomap.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "NetherPortalBlockMixin",
+    "BaseFireBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}
