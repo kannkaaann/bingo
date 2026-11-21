@@ -14,10 +14,12 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
@@ -29,6 +31,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
  *   /bingomap render <name> <origCorner> <blankCorner>   draw the card onto the map called <name>
  *   /bingomap give <players> <name>                      give the player that map
  *   /bingomap wipe <players>                             clear the players' ender chests
+ *   /bingomap frame <pos> <roles>                        spawn a south-facing invulnerable item frame (roles joined by +)
  *   /bingomap dim open|close <prep|play>                 create / delete the same-seed temporary worlds
  * Corner = block position of the top-left (west / top) item frame of a 5x5 wall facing south.
  */
@@ -49,6 +52,10 @@ public class BingoMapMod implements ModInitializer {
                     .then(Commands.argument("targets", EntityArgument.players())
                         .then(Commands.argument("name", StringArgumentType.word())
                             .executes(BingoMapMod::give))))
+                .then(Commands.literal("frame")
+                    .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                        .then(Commands.argument("roles", StringArgumentType.word())
+                            .executes(BingoMapMod::frame))))
                 .then(Commands.literal("dim")
                     .then(Commands.literal("open")
                         .then(Commands.argument("kind", StringArgumentType.word())
@@ -59,6 +66,22 @@ public class BingoMapMod implements ModInitializer {
                 .then(Commands.literal("wipe")
                     .then(Commands.argument("targets", EntityArgument.players())
                         .executes(BingoMapMod::wipe)))));
+    }
+
+    /** Spawns an invulnerable south-facing item frame the vanilla way (like placing it by hand). */
+    private static int frame(CommandContext<CommandSourceStack> ctx) {
+        BlockPos pos = BlockPosArgument.getBlockPos(ctx, "pos");
+        String roles = StringArgumentType.getString(ctx, "roles");
+        ServerLevel level = ctx.getSource().getLevel();
+        ItemFrame frame = new ItemFrame(level, pos, Direction.SOUTH);
+        frame.setInvulnerable(true);
+        frame.addTag("bingo.frame");
+        frame.addTag("bingo.new");
+        for (String r : roles.split("\\+")) {
+            if (!r.isEmpty()) frame.addTag("bingo." + r);
+        }
+        level.addFreshEntity(frame);
+        return 1;
     }
 
     private static int dim(CommandContext<CommandSourceStack> ctx, boolean open) {
