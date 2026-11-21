@@ -78,7 +78,7 @@ final class CardRenderer {
 
     // ---------- drawing ----------
     static void render(ServerLevel level, MapItemSavedData data, BlockPos orig, BlockPos blank) {
-        byte[] px = data.colors;
+        byte[] px = new byte[128 * 128];
         java.util.Arrays.fill(px, nearest(C_GRID));
         for (int r = 0; r < 5; r++) {
             for (int c = 0; c < 5; c++) {
@@ -87,8 +87,12 @@ final class CardRenderer {
                 drawCell(px, c, r, want, done);
             }
         }
-        data.setColorsDirty(0, 0);
-        data.setColorsDirty(127, 127);
+        // setColor() marks the changed pixels dirty so holders of the map get updated
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                data.setColor(x, y, px[x + y * 128]);
+            }
+        }
         data.setDirty();
     }
 
