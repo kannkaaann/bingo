@@ -1,6 +1,7 @@
 package jp.bingo.bingomap;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
@@ -32,6 +34,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
  *   /bingomap give <players> <name>                      give the player that map
  *   /bingomap wipe <players>                             clear the players' ender chests
  *   /bingomap frame <pos> <roles>                        spawn a south-facing invulnerable item frame (roles joined by +)
+ *   /bingomap diag                                       print item-frame diagnostics around the executor
  *   /bingomap dim open|close <prep|play>                 create / delete the same-seed temporary worlds
  * Corner = block position of the top-left (west / top) item frame of a 5x5 wall facing south.
  */
@@ -56,6 +59,8 @@ public class BingoMapMod implements ModInitializer {
                     .then(Commands.argument("pos", BlockPosArgument.blockPos())
                         .then(Commands.argument("roles", StringArgumentType.word())
                             .executes(BingoMapMod::frame))))
+                .then(Commands.literal("diag")
+                    .executes(BingoMapMod::diag))
                 .then(Commands.literal("dim")
                     .then(Commands.literal("open")
                         .then(Commands.argument("kind", StringArgumentType.word())
@@ -82,6 +87,34 @@ public class BingoMapMod implements ModInitializer {
         }
         level.addFreshEntity(frame);
         return 1;
+    }
+
+    /** Prints info about item frames within 16 blocks, to find out why frames pop off. */
+    private static int diag(CommandContext<CommandSourceStack> ctx) {
+        ServerLevel level = ctx.getSource().getLevel();
+        BlockPos c = BlockPos.containing(ctx.getSource().getPosition());
+        List<ItemFrame> list = level.getEntitiesOfClass(ItemFrame.class, new AABB(c).inflate(16));
+        ctx.getSource().sendSuccess(() -> Component.literal("[diag] dim=" + level.dimension() + " frames=" + list.size()), false);
+        BingoWorlds.DIAG = true;
+        try {
+            int n = 0;
+            for (ItemFrame f : list) {
+                if (n++ >= 6) break;
+                Direction d = f.getDirection();
+                BlockPos fp = f.blockPosition();
+                BlockPos support = fp.relative(d.getOpposite());
+                String line = "[diag] pos=" + fp.toShortString() + " dir=" + d
+                    + " supportSolid=" + level.getBlockState(support).isSolid()
+                    + " noCollision=" + level.noCollision(f)
+                    + " survives=" + f.survives()
+                    + " invulnerable=" + f.isInvulnerable()
+                    + " tags=" + f.getTags();
+                ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+            }
+        } finally {
+            BingoWorlds.DIAG = false;
+        }
+        return list.size();
     }
 
     private static int dim(CommandContext<CommandSourceStack> ctx, boolean open) {

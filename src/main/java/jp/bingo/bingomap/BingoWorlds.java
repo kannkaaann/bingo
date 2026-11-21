@@ -26,6 +26,9 @@ import xyz.nucleoid.fantasy.RuntimeWorldHandle;
 public final class BingoWorlds {
     private static final Map<String, List<RuntimeWorldHandle>> OPEN = new HashMap<>();
 
+    /** true while /bingomap diag runs, so it can report the real (un-patched) survival check. */
+    public static volatile boolean DIAG = false;
+
     private BingoWorlds() {}
 
     public static ResourceKey<Level> key(String path) {

@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "NetherPortalBlockMixin",
-    "BaseFireBlockMixin"
+    "BaseFireBlockMixin",
+    "ItemFrameMixin"
   ],
   "injectors": {
     "defaultRequire": 0

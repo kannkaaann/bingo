@@ -1,6 +1,6 @@
-# チーム戦ビンゴ Ver1.2(Minecraft 1.21.11 / Fabric + Fantasy)
+# チーム戦ビンゴ Ver1.3(Minecraft 1.21.11 / Fabric + Fantasy)
 
-構成: `datapack/team_bingo_Ver1.2`(ゲーム本体)+ `mod/`(ワールド生成・ポータル・マップ描画のFabric MOD)
+構成: `datapack/team_bingo_Ver1.3`(ゲーム本体)+ `mod/`(ワールド生成・ポータル・マップ描画のFabric MOD)
 
 ## ⚠ 未検証です
 この環境ではMavenに接続できずMODをコンパイルできず、Minecraftも起動できません。**実機テスト・ビルド確認は未実施**です。
@@ -17,9 +17,9 @@
 - 一時ワールドはサーバー停止で消えます。**再起動後や中断時は `/function bingo:admin/reset`** を実行してください。
 
 ## 導入(Essential)
-1. **ホストのみ**: Fabric Loader 0.18.1+ / Fabric API 0.141.3+1.21.11 / `bingomap-1.2.0.jar`(Fantasy同梱)。Java 21。
-2. ワールドの `datapacks/` に `team_bingo_Ver1.2` を入れる(新規ワールド推奨)。参加者はMOD不要。
-3. ビルド: `mod/` で `gradle wrapper --gradle-version 9.2.1` → `./gradlew build` → `build/libs/bingomap-1.2.0.jar`。
+1. **ホストのみ**: Fabric Loader 0.18.1+ / Fabric API 0.141.3+1.21.11 / `bingomap-1.3.0.jar`(Fantasy同梱)。Java 21。
+2. ワールドの `datapacks/` に `team_bingo_Ver1.3` を入れる(新規ワールド推奨)。参加者はMOD不要。
+3. ビルド: `mod/` で `gradle wrapper --gradle-version 9.2.1` → `./gradlew build` → `build/libs/bingomap-1.3.0.jar`。
 
 ## 遊び方
 1. (0,0)付近のロビーでボタンを押してチーム参加(人数制限なし)。金ブロックのボタンで開始(全員チーム参加済み・両チーム1人以上)。
@@ -45,7 +45,13 @@
   - 準備→ビンゴ時のカードのコピーを「額縁の位置」基準に変更(手で付け直した額縁も拾う)。
   - 勝利後にライン達成通知が続かないよう修正。
   - ビンゴ開始時に、各チームの原本の空きマス(FREE)数を表示。
-  - 更新手順: 古い `team_bingo_Ver1.2` を新しいものに置き換え → ワールドを開き `/reload` → `/function bingo:admin/reset`。
-- Ver1.2(データパック `team_bingo_Ver1.2` + MOD `bingomap-1.2.0.jar` の**両方更新**)
+  - 更新手順: 古い `team_bingo_Ver1.3` を新しいものに置き換え → ワールドを開き `/reload` → `/function bingo:admin/reset`。
+- Ver1.2(データパック `team_bingo_Ver1.3` + MOD `bingomap-1.3.0.jar` の**両方更新**)
   - 額縁をコマンドの `summon` ではなく、MODの `/bingomap frame`(バニラの額縁生成=手で置くのと同じ処理)で作成。`summon` 方式だと1.21.11で額縁が壊れる問題の修正。
   - データパックのフォルダ名にバージョンを付与(更新時は古いフォルダを**必ず削除**してから入れる)。
+- Ver1.3(データパック `team_bingo_Ver1.3` + MOD `bingomap-1.3.0.jar` の**両方更新**)
+  - 額縁が壊れる問題への対策: MODのMixinで、ビンゴ用ワールド内の額縁の「壁に付いているか」チェックを無効化。さらに準備フェーズ中は40tickごとに額縁の有無を確認し、無ければ自動で再生成(手で置いた額縁も位置で認識)。
+  - `/bingomap diag`: 周囲の額縁の状態(向き・支え・衝突・存続判定)を表示する診断コマンド。
+  - デバッグ用1人プレイ: ロビーの紫のボタン「デバッグ開始」(または全員がチーム参加後に使用)。空のチームのカードは自動で埋められ、勝利判定は参加しているチームのみ。
+  - 準備完了ボタン: 各拠点の緑のボタン。参加者のいる全チームが押すと準備フェーズを即終了(もう一度押すと取り消し)。1人プレイなら押した時点で終了。
+  - ロビーに新しいボタンを追加するため、更新後は `/function bingo:admin/rebuild_lobby` を実行してください。
